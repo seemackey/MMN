@@ -13,6 +13,6 @@
     
     % load our rcx file and run it
     %RP.LoadCOF('C:\TDT\RPvdsEx\Examples\TDT_test_soft_trig.rcx');
-    RP.LoadCOF('C:\Users\seema\OneDrive\Documents\MATLAB\MMN.rcx');
+    RP.LoadCOF('D:\TDT_mmn paradigms\MMN-main\MMN_withTRig_V2.rcx');
     RP.Run; %
     %close all;
