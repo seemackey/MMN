@@ -1,5 +1,9 @@
 tic
-filename = 'xxx';
+
+clear
+close all
+clc
+
 
 % Set up actx server/control
 handles.RP = actxcontrol('RPco.x');
@@ -12,7 +16,7 @@ RP.ClearCOF;
 
 % Load your rcx file and run it
 RP.LoadCOF('C:\MMN-main\MMN_NewTiming.rcx');
-RP.Run;
+
 
 % Directory for the text files
 paramsDir = 'C:\MMN-main\';  %  your directory 
@@ -20,7 +24,7 @@ gimmefiggies = 1; % plots of the stimulus parameters as a check
 
 % Define the parameters for the standard stimulus. 
 % Stimtype #0 is unmodulated tone, #1 is AM, and #2 is FM
-standardParams = struct('ToneAmp', .1, 'ToneFreq', 2000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType', 0);
+standardParams = struct('ToneAmp', .1, 'ToneFreq', 2000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType', 1);
 
 % Define the parameters for the deviant stimulus.
 deviantParams1 = struct('ToneAmp', 0.1, 'ToneFreq', 2000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType', 1);
@@ -70,10 +74,11 @@ if gimmefiggies == 1
 end
 
 
-% Generate stimuli and write to text files
-generate_stimuli(RP, standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, filename, paramsDir);
+%  write to text files
+generate_trials(standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, paramsDir);
 
 % run the circuit and record outputs
+RP.Run;
 RP.SoftTrg(1);
 
 %  "TrialParameters" directory 
@@ -123,14 +128,14 @@ dlmwrite(csvFileName, allParams, '-append');
 dataCell = [paramNames; num2cell(allParams)];
 writecell(dataCell, xlsxFileName);
 
-pause(20)
-RP.Halt;
+% pause(20)
+% RP.Halt;
 
 toc
 
 
 
-function generate_stimuli(RP, standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, filename, paramsDir)
+function generate_trials(standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, paramsDir)
     % Calculate number of trials for deviants (silent tones)
     numDeviants = ceil(numTrials * deviantProbability1);
 
@@ -201,7 +206,7 @@ function generate_stimuli(RP, standardParams, deviantParams1, deviantProbability
             fprintf(sweepTimeFile, '%f\n', currentParams.ID_SweepTime);
             fprintf(f1File, '%f\n', currentParams.ID_F1);
             fprintf(f2File, '%f\n', currentParams.ID_F2);
-            fprintf(stimTypeFile, '%d\n', currentParams.StimType);
+            fprintf(stimTypeFile, '%f\n', currentParams.StimType);
              % 
             fprintf(isiFile, '%f\n', interstimulusInterval);
 
