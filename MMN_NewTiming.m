@@ -14,8 +14,7 @@ RP.ConnectRX6('USB', 1);
 RP.Halt;
 RP.ClearCOF;
 
-% Load your rcx file and run it
-RP.LoadCOF('C:\MMN-main\MMN_NewTiming.rcx');
+
 
 
 % Directory for the text files
@@ -24,10 +23,10 @@ gimmefiggies = 1; % plots of the stimulus parameters as a check
 
 % Define the parameters for the standard stimulus. 
 % Stimtype #0 is unmodulated tone, #1 is AM, and #2 is FM
-standardParams = struct('ToneAmp', .1, 'ToneFreq', 2000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType', 1);
+standardParams = struct('ToneAmp', .1, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType',0);
 
 % Define the parameters for the deviant stimulus.
-deviantParams1 = struct('ToneAmp', 0.1, 'ToneFreq', 2000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType', 1);
+deviantParams1 = struct('ToneAmp', 0.1, 'ToneFreq', 2000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 4000, 'StimType',0);
 
 % Define the probability of a deviant stimulus
 deviantProbability1 = 0.1;
@@ -77,9 +76,7 @@ end
 %  write to text files
 generate_trials(standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, paramsDir);
 
-% run the circuit and record outputs
-RP.Run;
-RP.SoftTrg(1);
+
 
 %  "TrialParameters" directory 
 futureDir = fullfile(paramsDir, 'TrialParameters');
@@ -128,10 +125,58 @@ dlmwrite(csvFileName, allParams, '-append');
 dataCell = [paramNames; num2cell(allParams)];
 writecell(dataCell, xlsxFileName);
 
-% pause(20)
-% RP.Halt;
+% Pause to allow the user to review the parameters
+pause(2);
 
-toc
+% Ask the user if the parameters are okay and if they are ready to proceed
+while true
+    userResponse = input('Are the parameters correct? Type "yes" to proceed or "no" to review again: ', 's');
+    if strcmpi(userResponse, 'yes')
+        % Load the rcx file and run it
+        RP.LoadCOF('C:\MMN-main\MMN_NewTiming.rcx');
+        RP.Run;
+        disp('Circuit is now running...');
+        break; % Exit the loop and proceed
+    elseif strcmpi(userResponse, 'no')
+        disp('Please review the parameters and run the script again.');
+        return; % Exit the script
+    else
+        disp('Invalid response. Please type "yes" or "no".');
+    end
+end
+
+% Notify the user about the expected run time
+totalDuration = (numTrials * (interstimulusInterval + standardParams.ToneDur)) / 1000; % Convert from ms to seconds
+fprintf('The circuit is expected to run for approximately %.2f seconds.\n', totalDuration);
+
+% Initialize the timer
+startTime = tic;
+
+% Loop until the expected duration has elapsed
+while toc(startTime) < totalDuration
+    % Check if the user wants to stop the circuit
+    userStop = input('Type "stop" to halt the circuit or press Enter to continue: ', 's');
+    
+    if strcmpi(userStop, 'stop')
+        RP.Halt;
+        disp('Circuit halted.');
+        break; % Exit the loop
+    end
+    
+    % Notify the user about remaining time (optional)
+    elapsedTime = toc(startTime);
+    remainingTime = totalDuration - elapsedTime;
+    fprintf('%.2f seconds remaining.\n', remainingTime);
+    
+    % Short pause to avoid busy-waiting (adjust as needed)
+    pause(1);
+end
+
+% If the loop completes, notify the user that the circuit should be done
+if toc(startTime) >= totalDuration
+    disp('The expected circuit duration has elapsed. The circuit should be done.');
+end
+
 
 
 
