@@ -37,6 +37,21 @@ interstimulusInterval = 624;
 % Specify the number of trials
 numTrials = 50;
 
+%% Calculate the expected run time considering different durations for standard and deviant trials
+totalDuration = 0;
+numDeviants = ceil(numTrials * deviantProbability1);
+
+for i = 1:numTrials
+    if i <= numDeviants
+        totalDuration = totalDuration + (interstimulusInterval + deviantParams1.ToneDur);
+    else
+        totalDuration = totalDuration + (interstimulusInterval + standardParams.ToneDur);
+    end
+end
+
+% Convert to seconds
+totalDuration = totalDuration / 1000;
+
 %% CHECK THE PARAMETER SETTINGS WITH THIS PLOT
 if gimmefiggies == 1
     % List of parameter filenames
@@ -128,9 +143,12 @@ writecell(dataCell, xlsxFileName);
 % Pause to allow the user to review the parameters
 pause(2);
 
+
 % Ask the user if the parameters are okay and if they are ready to proceed
-while true
+userResponse = '';
+while ~strcmpi(userResponse, 'yes') && ~strcmpi(userResponse, 'no')
     userResponse = input('Are the parameters correct? Type "yes" to proceed or "no" to review again: ', 's');
+    
     if strcmpi(userResponse, 'yes')
         % Load the rcx file and run it
         RP.LoadCOF('C:\MMN-main\MMN_NewTiming.rcx');
@@ -146,18 +164,29 @@ while true
 end
 
 % Notify the user about the expected run time
-totalDuration = (numTrials * (interstimulusInterval + standardParams.ToneDur)) / 1000; % Convert from ms to seconds
-fprintf('The circuit is expected to run for approximately %.2f seconds; type "RP.Halt" to halt the circuit.\n', totalDuration);
+fprintf('The circuit is expected to run for approximately %.2f seconds; stop matlab and type "RP.Halt" to halt the circuit.\n', totalDuration);
 
 % Initialize the timer
 startTime = tic;
 
-
-% If the loop completes without manual intervention, halt the circuit
-if toc(startTime) >= totalDuration
-    RP.Halt;
-    disp('The expected circuit duration has elapsed. The circuit has been halted.');
+% Run the loop until the expected duration has elapsed
+while true
+    % Check the elapsed time
+    elapsedTime = toc(startTime);
+    if elapsedTime >= totalDuration
+        RP.Halt;
+        disp('The expected circuit duration has elapsed. The circuit has been halted.');
+        break; % Exit the loop
+    end
+    
+    % Check if the user wants to stop the circuit
+    if get(gcf, 'CurrentCharacter') == 's'
+        RP.Halt;
+        disp('Circuit halted by user.');
+        break; % Exit the loop
+    end
 end
+
 
 
 
