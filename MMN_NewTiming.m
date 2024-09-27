@@ -3,7 +3,7 @@ tic
 clear
 close all
 clc
-
+filename = ['TrigTest_Sept_27_2024']; % file name for current run
 
 % Set up actx server/control
 handles.RP = actxcontrol('RPco.x');
@@ -23,10 +23,10 @@ gimmefiggies = 1; % plots of the stimulus parameters as a check
 
 % Define the parameters for the standard stimulus. 
 % Stimtype #0 is unmodulated tone, #1 is AM, and #2 is FM
-standardParams = struct('ToneAmp', .08, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType',0);
+standardParams = struct('ToneAmp', 0.025, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType',0);
 
 % Define the parameters for the deviant stimulus.
-deviantParams1 = struct('ToneAmp', 0.04, 'ToneFreq', 8000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 4000, 'StimType',0);
+deviantParams1 = struct('ToneAmp', 0.025, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 12000, 'ID_F2', 2000, 'StimType',0);
 
 % Define the probability of a deviant stimulus
 deviantProbability1 = 0.1;
@@ -118,8 +118,10 @@ for i = 1:length(paramFiles)
     allParams = [allParams, paramValues];
 end
 
-% Generate the output file names based on the current date and time
-timestamp = datestr(now, 'yyyy-mm-dd_HH-MM-SS');
+% Generate the output file names based on the current date and time or
+% NAME%%%%%%%%
+%timestamp = datestr(now, 'yyyy-mm-dd_HH-MM-SS');
+timestamp = filename;
 ev2FileName = fullfile(futureDir, [timestamp '.ev2']);
 csvFileName = fullfile(futureDir, [timestamp '.csv']);
 xlsxFileName = fullfile(futureDir, [timestamp '.xlsx']);
@@ -166,26 +168,64 @@ end
 % Notify the user about the expected run time
 fprintf('The circuit is expected to run for approximately %.2f seconds; stop matlab and type "RP.Halt" to halt the circuit.\n', totalDuration);
 
+%% EXPERIMENT STARTS NOW
 % Initialize the timer
 startTime = tic;
 
-% Run the loop until the expected duration has elapsed
-while true
-    % Check the elapsed time
-    elapsedTime = toc(startTime);
-    if elapsedTime >= totalDuration
-        RP.Halt;
-        disp('The expected circuit duration has elapsed. The circuit has been halted.');
-        break; % Exit the loop
+% Try-Catch block to ensure event files are updated correctly even if stopped prematurely
+try
+    % Run the loop until the expected duration has elapsed
+    while true
+        % Check the elapsed time
+        elapsedTime = toc(startTime);
+        if elapsedTime >= totalDuration
+            RP.Halt;
+            disp('The expected circuit duration has elapsed. The circuit has been halted.');
+            break; % Exit the loop
+        end
+
+        % Check if the user wants to stop the circuit
+        if get(gcf, 'CurrentCharacter') == 's'
+            RP.Halt;
+            disp('Circuit halted by user.');
+            break; % Exit the loop
+        end
     end
-    
-    % Check if the user wants to stop the circuit
-    if get(gcf, 'CurrentCharacter') == 's'
-        RP.Halt;
-        disp('Circuit halted by user.');
-        break; % Exit the loop
-    end
+catch exception
+    disp('Experiment was interrupted. Halting the circuit.');
+    RP.Halt;  % Ensure the circuit halts
+    rethrow(exception);  % Optionally rethrow the error if needed
 end
+
+% Check the final number of trials 
+finalTrialNum = RP.GetTagVal('TrialNum') - 1
+
+% this section is under consturction
+% Adjust the event files based on the final number of trials
+% if finalTrialNum < numTrials
+%     fprintf('Adjusting event files for %d completed trials (instead of %d expected).\n', finalTrialNum, numTrials);
+% 
+%     % Truncate the data to the number of completed trials
+%     truncatedParams = allParams(1:finalTrialNum, :);
+% 
+%     % Overwrite the event files with the truncated data
+%     dlmwrite(ev2FileName, truncatedParams, 'delimiter', ' ');
+% 
+%     % Save the truncated data to CSV
+%     fid = fopen(csvFileName, 'w');
+%     fprintf(fid, '%s\n', headers); % Write the headers
+%     fclose(fid);
+%     dlmwrite(csvFileName, truncatedParams, '-append');
+% 
+%     % Save the truncated data to Excel
+%     dataCell = [paramNames; num2cell(truncatedParams)];
+%     writecell(dataCell, xlsxFileName);
+% 
+%     disp('Event files updated to reflect the actual number of completed trials.');
+% else
+%     disp('All trials completed as expected.');
+% end
+
 
 
 
