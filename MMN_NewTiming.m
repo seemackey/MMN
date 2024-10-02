@@ -3,7 +3,7 @@ tic
 clear
 close all
 clc
-filename = ['TrigTest_Sept_27_2024']; % file name for current run
+filename = ['xxx']; % file name for current run
 
 % Set up actx server/control
 handles.RP = actxcontrol('RPco.x');
@@ -23,10 +23,10 @@ gimmefiggies = 1; % plots of the stimulus parameters as a check
 
 % Define the parameters for the standard stimulus. 
 % Stimtype #0 is unmodulated tone, #1 is AM, and #2 is FM
-standardParams = struct('ToneAmp', 0.025, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType',0);
+standardParams = struct('ToneAmp', 0.025, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType',1);
 
 % Define the parameters for the deviant stimulus.
-deviantParams1 = struct('ToneAmp', 0.025, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 12000, 'ID_F2', 2000, 'StimType',0);
+deviantParams1 = struct('ToneAmp', 0.025, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 12000, 'ID_F2', 2000, 'StimType',1);
 
 % Define the probability of a deviant stimulus
 deviantProbability1 = 0.1;
@@ -52,46 +52,8 @@ end
 % Convert to seconds
 totalDuration = totalDuration / 1000;
 
-%% CHECK THE PARAMETER SETTINGS WITH THIS PLOT
-if gimmefiggies == 1
-    % List of parameter filenames
-    paramFiles = {'ToneAmp.txt', 'ToneFreq.txt', 'ToneDur.txt', 'ModAmp.txt', 'ModFreq.txt', ...
-                  'FMSweepTime.txt', 'FM1.txt', 'FM2.txt', 'StimType.txt','ISI.txt'};
-              
-    % Corresponding parameter names for plot titles
-    paramNames = {'Tone Amplitude', 'Tone Frequency', 'Tone Duration', 'Modulation Amplitude', ...
-                  'Modulation Frequency', 'FM Sweep Time', 'FM1 Frequency', 'FM2 Frequency', ...
-                  'Stimulus Type','Interstimulus Interval'};
-    
-    % Number of bins for histograms
-    numBins = 20;
-    
-    % Create a figure for the histograms
-    figure('Name', 'Parameter Histograms', 'NumberTitle', 'off', 'Position', [100, 100, 1200, 800]);
-    
-    % Loop through each parameter file
-    for i = 1:length(paramFiles)
-        % Read the parameter values from the text file
-        paramValues = load(fullfile(paramsDir, paramFiles{i}));
-    
-        % Create a subplot for each parameter
-        subplot(3, 4, i);  % Adjust the layout as needed 
-        
-        % Plot the histogram
-        histogram(paramValues, numBins);
-        
-        % Set the title and labels
-        title(paramNames{i});
-        xlabel(paramNames{i});
-        ylabel('Frequency');
-    end
-end
-
-
 %  write to text files
 generate_trials(standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, paramsDir);
-
-
 
 %  "TrialParameters" directory 
 futureDir = fullfile(paramsDir, 'TrialParameters');
@@ -100,9 +62,9 @@ if ~exist(futureDir, 'dir')
 end
 
 % Define the list of parameter files and their corresponding names
-paramFiles = {'ToneAmp.txt', 'ToneFreq.txt', 'ToneDur.txt', 'ModAmp.txt', 'ModFreq.txt', ...
+paramFiles = {'ToneAmp.txt', 'ToneFreq.txt', 'ToneDur.txt', 'ModDepth.txt', 'ModFreq.txt', ...
               'FMSweepTime.txt', 'FM1.txt', 'FM2.txt', 'StimType.txt', 'ISI.txt', 'Deviant.txt'};
-paramNames = {'Tone Amplitude', 'Tone Frequency', 'Tone Duration', 'Modulation Amplitude', ...
+paramNames = {'Tone Amplitude', 'Tone Frequency', 'Tone Duration', 'Modulation Depth', ...
               'Modulation Frequency', 'FM Sweep Time', 'FM1 Frequency', 'FM2 Frequency', ...
               'Stimulus Type', 'Interstimulus Interval', 'Deviant'}; % Add 'Deviant' as a new column name
 
@@ -141,6 +103,41 @@ dlmwrite(csvFileName, allParams, '-append');
 % Save the data to a single .xlsx file with headers
 dataCell = [paramNames; num2cell(allParams)];
 writecell(dataCell, xlsxFileName);
+
+%% CHECK THE PARAMETER SETTINGS WITH THIS PLOT
+if gimmefiggies == 1
+    % List of parameter filenames
+    paramFiles = {'ToneAmp.txt', 'ToneFreq.txt', 'ToneDur.txt', 'ModDepth.txt', 'ModFreq.txt', ...
+                  'FMSweepTime.txt', 'FM1.txt', 'FM2.txt', 'StimType.txt','ISI.txt'};
+              
+    % Corresponding parameter names for plot titles
+    paramNames = {'Tone Amplitude', 'Tone Frequency', 'Tone Duration', 'Modulation Depth', ...
+                  'Modulation Frequency', 'FM Sweep Time', 'FM1 Frequency', 'FM2 Frequency', ...
+                  'Stimulus Type','Interstimulus Interval'};
+    
+    % Number of bins for histograms
+    numBins = 20;
+    
+    % Create a figure for the histograms
+    figure('Name', 'Parameter Histograms', 'NumberTitle', 'off', 'Position', [100, 100, 1200, 800]);
+    
+    % Loop through each parameter file
+    for i = 1:length(paramFiles)
+        % Read the parameter values from the text file
+        paramValues = load(fullfile(paramsDir, paramFiles{i}));
+    
+        % Create a subplot for each parameter
+        subplot(3, 4, i);  % Adjust the layout as needed 
+        
+        % Plot the histogram
+        histogram(paramValues, numBins);
+        
+        % Set the title and labels
+        title(paramNames{i});
+        xlabel(paramNames{i});
+        ylabel('Frequency');
+    end
+end
 
 % Pause to allow the user to review the parameters
 pause(2);

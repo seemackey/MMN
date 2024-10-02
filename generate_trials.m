@@ -1,5 +1,5 @@
 function generate_trials(standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, paramsDir)
-    % Calculate number of trials for deviants (silent tones)
+    % Calculate number of trials for deviants 
     numDeviants = ceil(numTrials * deviantProbability1);
 
     % Ensure deviants don't exceed 10% of total trials
@@ -39,7 +39,7 @@ function generate_trials(standardParams, deviantParams1, deviantProbability1, in
     toneAmpFile = fopen(fullfile(paramsDir, 'ToneAmp.txt'), 'w');
     toneFreqFile = fopen(fullfile(paramsDir, 'ToneFreq.txt'), 'w');
     toneDurFile = fopen(fullfile(paramsDir, 'ToneDur.txt'), 'w');
-    modAmpFile = fopen(fullfile(paramsDir, 'ModAmp.txt'), 'w');
+    modAmpFile = fopen(fullfile(paramsDir, 'ModDepth.txt'), 'w');
     modFreqFile = fopen(fullfile(paramsDir, 'ModFreq.txt'), 'w');
     sweepTimeFile = fopen(fullfile(paramsDir, 'FMSweepTime.txt'), 'w');
     f1File = fopen(fullfile(paramsDir, 'FM1.txt'), 'w');
