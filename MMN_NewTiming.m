@@ -3,7 +3,7 @@ tic
 clear
 close all
 clc
-filename = ['xxx']; % file name for current run
+filename = ['testOct102024']; % file name for current run
 
 % Set up actx server/control
 handles.RP = actxcontrol('RPco.x');
@@ -23,19 +23,21 @@ gimmefiggies = 1; % plots of the stimulus parameters as a check
 
 % Define the parameters for the standard stimulus. 
 % Stimtype #0 is unmodulated tone, #1 is AM, and #2 is FM
-standardParams = struct('ToneAmp', 0.025, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType',1);
+standardParams = struct('ToneAmp', 0.025, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType',0);
 
-% Define the parameters for the deviant stimulus.
-deviantParams1 = struct('ToneAmp', 0.025, 'ToneFreq', 1000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 12000, 'ID_F2', 2000, 'StimType',1);
+% Define the parameters for deviant stimulus. %Stimtype #0 is umodulated tone,#1 is AM and #2 is FM
+deviantParams1 = struct('ToneAmp', .025, 'ToneFreq', 2000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 300, 'ID_F1', 4000, 'ID_F2', 8000, 'StimType', 0);
+deviantParams2 = struct('ToneAmp', 0.025, 'ToneFreq', 4000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 250, 'ID_F1', 3000, 'ID_F2', 7000, 'StimType', 0);
 
 % Define the probability of a deviant stimulus
-deviantProbability1 = 0.1;
+deviantProbability1 = 0.1; 
+deviantProbability2 = deviantProbability1;
 
 % Define interstimulus interval (in milliseconds)
 interstimulusInterval = 624;
 
 % Specify the number of trials
-numTrials = 50;
+numTrials = 200;
 
 %% Calculate the expected run time considering different durations for standard and deviant trials
 totalDuration = 0;
@@ -53,7 +55,7 @@ end
 totalDuration = totalDuration / 1000;
 
 %  write to text files
-generate_trials(standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, paramsDir);
+generate_trials(standardParams, deviantParams1, deviantParams2, deviantProbability1, deviantProbability2, interstimulusInterval, numTrials, paramsDir)
 
 %  "TrialParameters" directory 
 futureDir = fullfile(paramsDir, 'TrialParameters');

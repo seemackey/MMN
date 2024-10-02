@@ -1,34 +1,81 @@
-function generate_trials(standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, paramsDir)
-    % Calculate number of trials for deviants 
-    numDeviants = ceil(numTrials * deviantProbability1);
+function generate_trials(standardParams, deviantParams1, deviantParams2, deviantProbability1, deviantProbability2,interstimulusInterval, numTrials, paramsDir)
+    % Check if deviantParams2 exists to determine if we need one or two deviants
+    hasSecondDeviant = exist('deviantParams2', 'var') && ~isempty(deviantParams2);
 
-    % Ensure deviants don't exceed 10% of total trials
-    if numDeviants > 0.1 * numTrials
-        numDeviants = floor(0.1 * numTrials);
+    % Calculate the number of trials for each deviant type based on specified probabilities
+    numDeviants1 = floor(deviantProbability1 * numTrials);
+
+    if hasSecondDeviant
+        numDeviants2 = floor(deviantProbability2 * numTrials);
+    else
+        numDeviants2 = 0;  % No second deviant
     end
 
     % Initialize cell array to store trial types
     trialTypes = cell(1, numTrials);
 
-    % Randomly assign deviant positions ensuring at least 2 standards between deviants
-    deviantIndices = sort(randperm(numTrials, numDeviants));
-
-    % Ensure at least 2 standards between consecutive deviants
-    lastDeviantIndex = 0;
-
-    % Assign deviant types while ensuring order and spacing
-    for i = 1:numDeviants
-        trialIdx = deviantIndices(i);
-        while trialIdx <= numTrials && (trialIdx - lastDeviantIndex < 4 || strcmp(trialTypes{trialIdx}, 'D'))
-            trialIdx = trialIdx + 1;
-        end
-        if trialIdx <= numTrials
-            trialTypes{trialIdx} = 'D';
-            lastDeviantIndex = trialIdx;
-        end
+    % Randomly assign deviant positions ensuring at least 4 standards between deviants
+    deviant1Indices = sort(randperm(numTrials, numDeviants1));
+    if hasSecondDeviant
+        deviant2Indices = sort(randperm(numTrials, numDeviants2));
     end
 
-    % Fill in the rest with standard trials
+    % Ensure at least 4 standards between consecutive deviants
+    lastD1Index = 0;
+    lastD2Index = 0;
+
+    % Initialize lists to hold deviant indices
+    dev1I = [];
+    dev2I = [];
+
+% Available positions for deviants
+    availablePositions = 1:numTrials;
+    
+    % Ensure at least 4 standards between consecutive deviants
+    minSpacing = 4;
+
+    % Assign Type 1 Deviants (D1) ensuring spacing
+    for i = 1:numDeviants1
+        % Check if there are still enough positions left
+        potentialPositions = availablePositions(availablePositions > minSpacing & availablePositions <= numTrials - minSpacing);
+        if isempty(potentialPositions)
+            warning('Not enough valid positions left for deviant 1 placement.');
+            break;
+        end
+        
+        % Randomly pick a position from the valid ones
+        idx = randperm(length(potentialPositions), 1);
+        trialIdx = potentialPositions(idx);
+        
+        % Remove any positions that would violate the spacing constraints
+        availablePositions = setdiff(availablePositions, trialIdx - minSpacing : trialIdx + minSpacing);
+        
+        trialTypes{trialIdx} = 'D1';
+        dev1I(end+1,:) = trialIdx;
+    end
+
+    % Assign Type 2 Deviants (D2) ensuring spacing
+    if hasSecondDeviant
+        for i = 1:numDeviants2
+            % Check if there are still enough positions left
+            potentialPositions = availablePositions(availablePositions > minSpacing & availablePositions <= numTrials - minSpacing);
+            if isempty(potentialPositions)
+                warning('Not enough valid positions left for deviant 2 placement.');
+                break;
+            end
+
+            % Randomly pick a position from the valid ones
+            idx = randperm(length(potentialPositions), 1);
+            trialIdx = potentialPositions(idx);
+            
+            % Remove any positions that would violate the spacing constraints
+            availablePositions = setdiff(availablePositions, trialIdx - minSpacing : trialIdx + minSpacing);
+            
+            trialTypes{trialIdx} = 'D2';
+            dev2I(end+1,:) = trialIdx;
+        end
+    end
+    % Fill the remaining trials with standard stimuli
     for i = 1:numTrials
         if isempty(trialTypes{i})
             trialTypes{i} = 'S';
@@ -58,9 +105,12 @@ function generate_trials(standardParams, deviantParams1, deviantProbability1, in
                 case 'S'
                     currentParams = standardParams;
                     deviantFlag = 0; % Standard trial
-                case 'D'
+                case 'D1'
                     currentParams = deviantParams1;
-                    deviantFlag = 1; % Deviant trial
+                    deviantFlag = 1; % Deviant type 1
+                case 'D2'
+                    currentParams = deviantParams2;
+                    deviantFlag = 2; % Deviant type 2
             end
 
             % Write the parameters to their respective text files
@@ -79,12 +129,17 @@ function generate_trials(standardParams, deviantParams1, deviantProbability1, in
             fprintf(deviantFile, '%d\n', deviantFlag);
         end
 
-        % Print indices for deviant at the end
-        fprintf('Indices of deviants: %s\n', num2str(find(strcmp(trialTypes, 'D'))));
+        % Print indices for deviant types
+        disp('Indices of deviant type 1:');
+        dev1I
+        if hasSecondDeviant
+            disp('Indices of deviant type 2:');
+            dev2I
+        end
 
     catch exception
-        % Display the error message
-        disp('An error occurred: something stopped the loop before it could finish. Closing files and saving data.');
+        % Handle errors and save data safely
+        disp('An error occurred: stopping the loop early. Saving data.');
         disp(exception.message);
     end
 
@@ -99,5 +154,5 @@ function generate_trials(standardParams, deviantParams1, deviantProbability1, in
     fclose(f2File);
     fclose(stimTypeFile);
     fclose(isiFile);
-    fclose(deviantFile); % Close the new deviant file
+    fclose(deviantFile);
 end
