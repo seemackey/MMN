@@ -10,29 +10,22 @@ function generate_trials(standardParams, deviantParams1, deviantProbability1, in
     % Initialize cell array to store trial types
     trialTypes = cell(1, numTrials);
 
-    % Randomly assign deviant positions ensuring at least 2 standards between deviants
-    deviantIndices = sort(randperm(numTrials, numDeviants));
 
-    % Ensure at least 2 standards between consecutive deviants
-    lastDeviantIndex = 0;
+    minimumSpacing = 4:1:10;
 
-    % Assign deviant types while ensuring order and spacing
+    % Initialize the first trial index
+    trialIdx = 1;
+    deviantIndices = [];
     for i = 1:numDeviants
-        trialIdx = deviantIndices(i);
-        while trialIdx <= numTrials && (trialIdx - lastDeviantIndex < 4 || strcmp(trialTypes{trialIdx}, 'D'))
-            trialIdx = trialIdx + 1;
-        end
-        if trialIdx <= numTrials
-            trialTypes{trialIdx} = 'D';
-            lastDeviantIndex = trialIdx;
-        end
-    end
+        % Add a random spacing from the minimumSpacing range
+        spacing = randi([min(minimumSpacing), max(minimumSpacing)], 1, 1); 
+        
+        % Compute the next trial index by adding the spacing
+        trialIdx = trialIdx + spacing;
 
-    % Fill in the rest with standard trials
-    for i = 1:numTrials
-        if isempty(trialTypes{i})
-            trialTypes{i} = 'S';
-        end
+        % Assign the deviant to the calculated trial index
+        trialTypes{trialIdx} = 'D';
+        deviantIndices(i) = trialIdx;
     end
 
     % Open the text files for each parameter
