@@ -27,6 +27,11 @@ function generate_trials(standardParams, deviantParams1, deviantProbability1, in
         trialTypes{trialIdx} = 'D';
         deviantIndices(i) = trialIdx;
     end
+    for i = 1:numTrials
+        if isempty(trialTypes{i})
+            trialTypes{i} = 'S';
+        end
+    end
 
     % Open the text files for each parameter
     toneAmpFile = fopen(fullfile(paramsDir, 'ToneAmp.txt'), 'w');
