@@ -23,22 +23,20 @@ gimmefiggies = 0; % plots of the stimulus parameters as a check
 
 % Define the parameters for the standard stimulus. 
 % Stimtype #0 is unmodulated tone, #1 is AM, and #2 is FM
-standardParams = struct('ToneAmp',0.02, 'ToneFreq', 1000,'ToneDur', 50, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2',12000, 'StimType',2);
+standardParams = struct('ToneAmp', 0.025, 'ToneFreq', 2000, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2', 12000, 'StimType',0);
 
 % Define the parameters for the deviant stimulus.
-deviantParams1 = struct('ToneAmp',0.02, 'ToneFreq', 8000, 'ToneDur', 50, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 12000, 'ID_F2', 2000, 'StimType',2);
-filename = ['fmtest3']; % file name for current run
+deviantParams1 = struct('ToneAmp', 0, 'ToneFreq', 0, 'ToneDur', 100, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 12000, 'ID_F2', 2000, 'StimType',0);
+filename = ['ke105106022']; % file name for current run
 % Define the probability of a deviant stimulus
-     deviantProbability1 = 0.1; % anyes
-     % d minimumSpacing =6:1:12; in generate_trials script-  10% Dev
-% deviantProbability1 = 0.25;%for cross refactoriness needs to be 0.25 and minimumSpacing =2:1:5; in generate_trials script -   25% Dev
- %deviantProbability1 = 0.05;%for cross refactoriness needs to be 0.25 and minimumSpacing =2:1:5; in generate_trials script -  5% Dev 
-  % deviantProbability1 = 0.5;%for cross refactoriness needs to be 0.5 and minimumSpacing =2 in generate_trials script -   Cross Refrac
+deviantProbability1 = 0.07; % 
+
+
 % % Define interstimulus interval (in milliseconds)
-interstimulusInterval =524;
+interstimulusInterval = 524;
 
 % Specify the number of trials
-numTrials =1000;% for 5% change numTrials to 2000, for 25% change numTrials to 500
+numTrials = 1300;
 % % Define interstimulus interval (in milliseconds)
 % a=0.2;
 % b=624;
@@ -46,7 +44,7 @@ numTrials =1000;% for 5% change numTrials to 2000, for 25% change numTrials to 5
 % interstimulusInterval = x;
 %% Calculate the expected run time considering different durations for standard and deviant trials
 totalDuration = 0;
-numDeviants = ceil(numTrials * deviantProbability1);
+numDeviants = ceil(numTrials * .5);
 
 for i = 1:numTrials
     if i <= numDeviants
@@ -60,7 +58,7 @@ end
 totalDuration = totalDuration / 1000;
 
 %  write to text files
-generate_trials(standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, paramsDir);
+generate_trials_contiguous_Omission(standardParams, deviantParams1, deviantProbability1, interstimulusInterval, numTrials, paramsDir);
 
 %  "TrialParameters" directory 
 futureDir = fullfile(paramsDir, 'TrialParameters');
