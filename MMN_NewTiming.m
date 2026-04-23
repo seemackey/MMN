@@ -14,7 +14,9 @@ RP.ConnectRX6('USB', 1);
 RP.Halt;
 RP.ClearCOF;
 
-
+if RP.GetStatus == 0
+    disp('DEVICE NOT CONNECTED, CHECK USB, CONSIDER CPU REBOOT')
+end
 
 
 % Directory for the text files
@@ -23,22 +25,22 @@ gimmefiggies = 0; % plots of the stimulus parameters as a check
 
 % Define the parameters for the standard stimulus. 
 % Stimtype #0 is unmodulated tone, #1 is AM, and #2 is FM
-standardParams = struct('ToneAmp',0.02, 'ToneFreq', 1000,'ToneDur', 50, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 100, 'ID_F1', 2000, 'ID_F2',12000, 'StimType',2);
+standardParams = struct('ToneAmp',0.025, 'ToneFreq', 2000,'ToneDur', 500, 'ModAmp', 1, 'ModFreq', 20, 'ID_SweepTime', 500, 'ID_F1', 2000, 'ID_F2',12000, 'StimType',0);
 
 % Define the parameters for the deviant stimulus.
-deviantParams1 = struct('ToneAmp',0.02, 'ToneFreq', 8000, 'ToneDur', 50, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 100, 'ID_F1', 12000, 'ID_F2', 2000, 'StimType',2);
-filename = ['fmtest3']; % file name for current run
+deviantParams1 = struct('ToneAmp',0.025, 'ToneFreq', 4000, 'ToneDur', 500, 'ModAmp', 1, 'ModFreq', 80, 'ID_SweepTime', 500, 'ID_F1', 12000, 'ID_F2', 2000, 'StimType',0);
+filename = ['mmn']; % file name for current run
 % Define the probability of a deviant stimulus
      deviantProbability1 = 0.1; % anyes
      % d minimumSpacing =6:1:12; in generate_trials script-  10% Dev
 % deviantProbability1 = 0.25;%for cross refactoriness needs to be 0.25 and minimumSpacing =2:1:5; in generate_trials script -   25% Dev
  %deviantProbability1 = 0.05;%for cross refactoriness needs to be 0.25 and minimumSpacing =2:1:5; in generate_trials script -  5% Dev 
-  % deviantProbability1 = 0.5;%for cross refactoriness needs to be 0.5 and minimumSpacing =2 in generate_trials script -   Cross Refrac
+   % deviantProbability1 = 0.5;%for cross refactoriness needs to be 0.5 and minimumSpacing =2 in generate_trials script -   Cross Refrac
 % % Define interstimulus interval (in milliseconds)
 interstimulusInterval =524;
 
 % Specify the number of trials
-numTrials =1000;% for 5% change numTrials to 2000, for 25% change numTrials to 500
+numTrials =100;% for 5% change numTrials to 2000, for 25% change numTrials to 500
 % % Define interstimulus interval (in milliseconds)
 % a=0.2;
 % b=624;
@@ -170,7 +172,7 @@ while ~strcmpi(userResponse, 'yes') && ~strcmpi(userResponse, 'no')
 end
 
 % Notify the user about the expected run time
-fprintf('The circuit is expected to run for approximately %.2f seconds; stop matlab and type "RP.Halt" to halt the circuit.\n', totalDuration);
+fprintf('The circuit is expected to run for approximately %.2f seconds; stop matlab and type "RP.Halt" to halt the circuit. \n If you issue a halt, afterwards run a dummy/test file of just a few trials to completion BEFORE your next run', totalDuration);
 
 %% EXPERIMENT STARTS NOW
 % Initialize the timer
@@ -202,7 +204,7 @@ catch exception
 end
 
 % Check the final number of trials 
-finalTrialNum = RP.GetTagVal('TrialNum') - 1
+finalTrialNum = RP.GetTagVal('TrialNum') -1
 
 % this section is under consturction
 % Adjust the event files based on the final number of trials
